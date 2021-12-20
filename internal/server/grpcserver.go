@@ -1,13 +1,13 @@
-package user
+package server
 
 import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/sirupsen/logrus"
-	"github.com/zhenianik/grpcApiTest/internal/user/cache"
-	"github.com/zhenianik/grpcApiTest/internal/user/model"
-	"github.com/zhenianik/grpcApiTest/internal/user/repository"
+	"github.com/zhenianik/grpcApiTest/internal/db/model"
+	"github.com/zhenianik/grpcApiTest/internal/db/repository"
+	"github.com/zhenianik/grpcApiTest/internal/server/cache"
 	"github.com/zhenianik/grpcApiTest/pkg/api"
 	"github.com/zhenianik/grpcApiTest/pkg/dbLogger"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -38,13 +38,13 @@ func (s *GRPCServer) Get(ctx context.Context, _ *emptypb.Empty) (*api.UserList, 
 
 	resp, err = s.cache.Get(ctx, "grpc_test_users")
 	if len(resp.Users) != 0 {
-		s.Logger.Debug("getting user list from cache")
+		s.Logger.Debug("getting service list from cache")
 		return resp, nil
 	}
 
 	users, err := s.db.GetUsers(ctx)
 	if err != nil {
-		s.Logger.Error(fmt.Errorf("getting user list from db error: %w", err))
+		s.Logger.Error(fmt.Errorf("getting service list from db error: %w", err))
 		return nil, err
 	}
 
@@ -67,7 +67,7 @@ func (s *GRPCServer) Add(ctx context.Context, request *api.AddRequest) (*api.Res
 
 	id, err := s.db.AddUser(ctx, &user)
 	if err != nil {
-		s.Logger.Error(fmt.Errorf("adding user into db error: %w", err))
+		s.Logger.Error(fmt.Errorf("adding service into db error: %w", err))
 		return nil, err
 	}
 
@@ -85,7 +85,7 @@ func (s *GRPCServer) Add(ctx context.Context, request *api.AddRequest) (*api.Res
 func (s *GRPCServer) Remove(ctx context.Context, request *api.RemoveRequest) (*api.Response, error) {
 	err := s.db.RemoveUser(ctx, request.Body.User.Id)
 	if err != nil {
-		s.Logger.Error(fmt.Errorf("removing user from db error: %w", err))
+		s.Logger.Error(fmt.Errorf("removing service from db error: %w", err))
 		return nil, err
 	}
 

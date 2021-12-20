@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.26.0
 // 	protoc        v3.19.1
-// source: user.proto
+// source: service.proto
 
 package api
 
@@ -427,7 +427,7 @@ type AddRequest_Body struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	User *AddUserReq `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	User *AddUserReq `protobuf:"bytes,1,opt,name=service,proto3" json:"service,omitempty"`
 }
 
 func (x *AddRequest_Body) Reset() {
@@ -474,7 +474,7 @@ type RemoveRequest_Body struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	User *RemoveUserReq `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	User *RemoveUserReq `protobuf:"bytes,1,opt,name=service,proto3" json:"service,omitempty"`
 }
 
 func (x *RemoveRequest_Body) Reset() {
@@ -585,7 +585,7 @@ func file_user_proto_rawDescGZIP() []byte {
 var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_user_proto_goTypes = []interface{}{
 	(*UserList)(nil),           // 0: api.UserList
-	(*User)(nil),               // 1: api.user
+	(*User)(nil),               // 1: api.service
 	(*UserResponse)(nil),       // 2: api.UserResponse
 	(*AddRequest)(nil),         // 3: api.AddRequest
 	(*RemoveRequest)(nil),      // 4: api.RemoveRequest
@@ -597,11 +597,11 @@ var file_user_proto_goTypes = []interface{}{
 	(*emptypb.Empty)(nil),      // 10: google.protobuf.Empty
 }
 var file_user_proto_depIdxs = []int32{
-	1,  // 0: api.UserList.users:type_name -> api.user
+	1,  // 0: api.UserList.users:type_name -> api.service
 	8,  // 1: api.AddRequest.body:type_name -> api.AddRequest.Body
 	9,  // 2: api.RemoveRequest.body:type_name -> api.RemoveRequest.Body
-	5,  // 3: api.AddRequest.Body.user:type_name -> api.addUserReq
-	6,  // 4: api.RemoveRequest.Body.user:type_name -> api.removeUserReq
+	5,  // 3: api.AddRequest.Body.service:type_name -> api.addUserReq
+	6,  // 4: api.RemoveRequest.Body.service:type_name -> api.removeUserReq
 	10, // 5: api.User.Get:input_type -> google.protobuf.Empty
 	3,  // 6: api.User.Add:input_type -> api.AddRequest
 	4,  // 7: api.User.Remove:input_type -> api.RemoveRequest

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/zhenianik/grpcApiTest/internal/user/model"
+	"github.com/zhenianik/grpcApiTest/internal/db/model"
 )
 
 type UserRepository struct {
@@ -54,7 +54,7 @@ func (db *UserRepository) AddUser(ctx context.Context, user *model.User) (id int
 
 	rows, _ := tx.Query(ctx, "SELECT id FROM users WHERE name = $1", user.Name)
 	if rows.Next() {
-		return 0, fmt.Errorf("user with name %s allready exist", user.Name)
+		return 0, fmt.Errorf("service with name %s allready exist", user.Name)
 	}
 
 	err = tx.QueryRow(ctx, "INSERT INTO users (name, email) VALUES ($1, $2) RETURNING id", user.Name, user.Email).Scan(&id)
@@ -77,7 +77,7 @@ func (db *UserRepository) RemoveUser(ctx context.Context, id int64) error {
 	}
 	rows, _ := conn.Query(ctx, "SELECT id FROM users WHERE id = $1", id)
 	if !rows.Next() {
-		return fmt.Errorf("user with id %d doesn't exist", id)
+		return fmt.Errorf("service with id %d doesn't exist", id)
 	}
 
 	tx, err := db.pg.Begin(ctx)

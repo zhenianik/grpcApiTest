@@ -3,27 +3,11 @@ option go_package = "/api";
 package api;
 
 import "google/protobuf/empty.proto";
-import "google/api/annotations.proto";
 
 service User {
-  rpc Get(google.protobuf.Empty) returns (UserList){
-    option (google.api.http) = {
-      get: "/users"
-    };
-  }
-  rpc Add(AddRequest) returns (Response){
-    option (google.api.http) = {
-      post: "/AddUser"
-      body: "*"
-    };
-  }
-  rpc Remove(RemoveRequest) returns (Response){
-    option (google.api.http) = {
-      post: "/RemoveUser"
-      body: "*"
-    };
-  }
-
+  rpc Get(google.protobuf.Empty) returns (UserList){}
+  rpc Add(AddRequest) returns (Response){}
+  rpc Remove(RemoveRequest) returns (Response){}
 }
 
 message UserList {
@@ -34,10 +18,6 @@ message user {
   int64 id = 1;
   string name = 2;
   string email = 3;
-}
-
-message UserResponse{
-  int32 result = 1;
 }
 
 message AddRequest {

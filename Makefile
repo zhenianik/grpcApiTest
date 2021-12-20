@@ -11,4 +11,4 @@ clean: ## clean api files
 	rm pkg/api/*.go
 
 goclay: ## generate handler with goclay
-	protoc --goclay_out=grpc_api_configuration=api/proto/user.yaml:pkg ./api/proto/user.proto
+	protoc --goclay_out=:pkg api/proto/user.proto

@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/zhenianik/grpcApiTest/config"
-	"github.com/zhenianik/grpcApiTest/internal/user"
-	"github.com/zhenianik/grpcApiTest/internal/user/cache"
+	"github.com/zhenianik/grpcApiTest/internal/server"
+	"github.com/zhenianik/grpcApiTest/internal/server/cache"
 	"github.com/zhenianik/grpcApiTest/pkg/api"
 	"github.com/zhenianik/grpcApiTest/pkg/database"
 	"github.com/zhenianik/grpcApiTest/pkg/dbLogger"
@@ -19,12 +19,12 @@ func main() {
 	}
 }
 
-func NewGRPCServer(cfg *config.Config) *user.GRPCServer {
+func NewGRPCServer(cfg *config.Config) *server.GRPCServer {
 	logDB := dbLogger.New(cfg.KafkaAddress)
 	db := database.Connect(cfg.PostgresUrl)
 	cache := cache.NewRedisCache(cfg.RedisHost, cfg.RedisDb, cfg.RedisExpires)
 	logger := logger.NewLogger(cfg.LogLevel)
-	return user.NewGRPCServer(db, logDB, cache, logger)
+	return server.NewGRPCServer(db, logDB, cache, logger)
 }
 
 func run() error {
