@@ -1,0 +1,68 @@
+syntax = "proto3";
+option go_package = "/api";
+package api;
+
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+
+service User {
+  rpc Get(google.protobuf.Empty) returns (UserList){
+    option (google.api.http) = {
+      get: "/users"
+    };
+  }
+  rpc Add(AddRequest) returns (Response){
+    option (google.api.http) = {
+      post: "/AddUser"
+      body: "*"
+    };
+  }
+  rpc Remove(RemoveRequest) returns (Response){
+    option (google.api.http) = {
+      post: "/RemoveUser"
+      body: "*"
+    };
+  }
+
+}
+
+message UserList {
+  repeated user users = 1;
+}
+
+message user {
+  int64 id = 1;
+  string name = 2;
+  string email = 3;
+}
+
+message UserResponse{
+  int32 result = 1;
+}
+
+message AddRequest {
+  message Body {
+    addUserReq user = 1;
+  }
+  Body body = 1;
+}
+
+message RemoveRequest {
+  message Body {
+    removeUserReq user = 1;
+  }
+  Body body = 1;
+}
+
+message addUserReq {
+  string name = 1;
+  string email = 2;
+}
+
+message removeUserReq {
+  int64 id = 1;
+}
+
+message Response {
+  string message = 1;
+}
