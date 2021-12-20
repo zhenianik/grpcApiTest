@@ -1,45 +1,38 @@
 package logger
 
 import (
-	"context"
-	"encoding/json"
-	"github.com/segmentio/kafka-go"
-	"time"
+	"github.com/sirupsen/logrus"
+	"github.com/x-cray/logrus-prefixed-formatter"
+	"os"
 )
 
-type Logger struct {
-	kafka *kafka.Writer
+var Logger *logrus.Logger
+
+func NewLogger(logLevel string) *logrus.Logger {
+
+	var level logrus.Level
+	level = LogLevel(logLevel)
+	logger := &logrus.Logger{
+		Out:   os.Stdout,
+		Level: level,
+		Formatter: &prefixed.TextFormatter{
+			DisableColors:   true,
+			TimestampFormat: "2009-06-03 11:04:075",
+		},
+	}
+	Logger = logger
+	return Logger
 }
 
-func New(address string) *Logger {
-	w := &kafka.Writer{
-		Addr:  kafka.TCP(address),
-		Async: true,
+func LogLevel(lvl string) logrus.Level {
+	switch lvl {
+	case "info":
+		return logrus.InfoLevel
+	case "error":
+		return logrus.ErrorLevel
+	case "debug":
+		return logrus.DebugLevel
+	default:
+		panic("Not supported")
 	}
-
-	return &Logger{
-		kafka: w,
-	}
-}
-
-type UserLogRequest struct {
-	ID   int64  `json:"user_id"`
-	Time int64  `json:"time"`
-	Name string `json:"name"`
-}
-
-func (l *Logger) LogRegistration(userID int64, name string, time time.Time) error {
-	dataJSON, err := json.Marshal(UserLogRequest{
-		ID:   userID,
-		Time: time.Unix(),
-		Name: name,
-	})
-	if err != nil {
-		return err
-	}
-
-	return l.kafka.WriteMessages(context.Background(), kafka.Message{
-		Topic: "users",
-		Value: dataJSON,
-	})
 }

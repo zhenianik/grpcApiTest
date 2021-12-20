@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/sirupsen/logrus"
 	"github.com/zhenianik/grpcApiTest/internal/user/cache"
 	"github.com/zhenianik/grpcApiTest/internal/user/model"
 	"github.com/zhenianik/grpcApiTest/internal/user/repository"
 	"github.com/zhenianik/grpcApiTest/pkg/api"
-	"github.com/zhenianik/grpcApiTest/pkg/logger"
+	"github.com/zhenianik/grpcApiTest/pkg/dbLogger"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"strconv"
 	"time"
@@ -16,16 +17,18 @@ import (
 
 type GRPCServer struct {
 	api.UnimplementedUserServer
-	db     *repository.UserRepository
-	logger *logger.Logger
-	cache  *cache.RedisCache
+	db       *repository.UserRepository
+	dbLogger *dbLogger.Logger
+	cache    *cache.RedisCache
+	Logger   *logrus.Logger
 }
 
-func NewGRPCServer(db *pgxpool.Pool, logger *logger.Logger, cache *cache.RedisCache) *GRPCServer {
+func NewGRPCServer(db *pgxpool.Pool, dbLogger *dbLogger.Logger, cache *cache.RedisCache, logger *logrus.Logger) *GRPCServer {
 	return &GRPCServer{
-		db:     repository.New(db),
-		logger: logger,
-		cache:  cache,
+		db:       repository.New(db),
+		dbLogger: dbLogger,
+		cache:    cache,
+		Logger:   logger,
 	}
 }
 
@@ -35,11 +38,13 @@ func (s *GRPCServer) Get(ctx context.Context, _ *emptypb.Empty) (*api.UserList, 
 
 	resp, err = s.cache.Get(ctx, "grpc_test_users")
 	if len(resp.Users) != 0 {
+		s.Logger.Debug("getting user list from cache")
 		return resp, nil
 	}
 
 	users, err := s.db.GetUsers(ctx)
 	if err != nil {
+		s.Logger.Error(fmt.Errorf("getting user list from db error: %w", err))
 		return nil, err
 	}
 
@@ -49,6 +54,7 @@ func (s *GRPCServer) Get(ctx context.Context, _ *emptypb.Empty) (*api.UserList, 
 
 	err = s.cache.Set(ctx, "grpc_test_users", resp)
 	if err != nil {
+		s.Logger.Error(fmt.Errorf("setting cache into db error: %w", err))
 		return nil, err
 	}
 
@@ -61,11 +67,13 @@ func (s *GRPCServer) Add(ctx context.Context, request *api.AddRequest) (*api.Res
 
 	id, err := s.db.AddUser(ctx, &user)
 	if err != nil {
+		s.Logger.Error(fmt.Errorf("adding user into db error: %w", err))
 		return nil, err
 	}
 
-	err = s.logger.LogRegistration(id, fmt.Sprintf("%s %s", request.Body.User.Name, request.Body.User.Email), time.Now())
+	err = s.dbLogger.LogRegistration(id, fmt.Sprintf("%s %s", request.Body.User.Name, request.Body.User.Email), time.Now())
 	if err != nil {
+		s.Logger.Error(fmt.Errorf("adding dbLogger error: %w", err))
 		return nil, err
 	}
 
@@ -77,6 +85,7 @@ func (s *GRPCServer) Add(ctx context.Context, request *api.AddRequest) (*api.Res
 func (s *GRPCServer) Remove(ctx context.Context, request *api.RemoveRequest) (*api.Response, error) {
 	err := s.db.RemoveUser(ctx, request.Body.User.Id)
 	if err != nil {
+		s.Logger.Error(fmt.Errorf("removing user from db error: %w", err))
 		return nil, err
 	}
 

@@ -24,6 +24,7 @@ type Config struct {
 	RedisHost    string        `mapstructure:"REDIS_HOST"`
 	RedisDb      int           `mapstructure:"REDIS_DB"`
 	RedisExpires time.Duration `mapstructure:"REDIS_EXPIRES"`
+	LogLevel     string        `mapstructure:"LOGGER_LEVEL"`
 }
 
 func GetConfig() (*Config, error) {

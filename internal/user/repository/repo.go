@@ -24,7 +24,10 @@ func (db *UserRepository) GetUsers(ctx context.Context) (users []*model.User, er
 		return nil, err
 	}
 
-	rows, _ := conn.Query(ctx, "SELECT id, name, email FROM users")
+	rows, err := conn.Query(ctx, "SELECT id, name, email FROM users")
+	if err != nil {
+		return nil, fmt.Errorf("select from db error")
+	}
 	for rows.Next() {
 		var user model.User
 

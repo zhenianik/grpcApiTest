@@ -7,30 +7,31 @@ import (
 	"github.com/zhenianik/grpcApiTest/internal/user/cache"
 	"github.com/zhenianik/grpcApiTest/pkg/api"
 	"github.com/zhenianik/grpcApiTest/pkg/database"
+	"github.com/zhenianik/grpcApiTest/pkg/dbLogger"
 	"github.com/zhenianik/grpcApiTest/pkg/logger"
 	"google.golang.org/grpc"
-	"log"
 	"net"
 )
 
 func main() {
 	if err := run(); err != nil {
-		log.Fatal(err)
+		logger.Logger.Fatal(err)
 	}
 }
 
 func NewGRPCServer(cfg *config.Config) *user.GRPCServer {
-	logDB := logger.New(cfg.KafkaAddress)
+	logDB := dbLogger.New(cfg.KafkaAddress)
 	db := database.Connect(cfg.PostgresUrl)
 	cache := cache.NewRedisCache(cfg.RedisHost, cfg.RedisDb, cfg.RedisExpires)
-	return user.NewGRPCServer(db, logDB, cache)
+	logger := logger.NewLogger(cfg.LogLevel)
+	return user.NewGRPCServer(db, logDB, cache, logger)
 }
 
 func run() error {
 	// config
 	cfg, err := config.GetConfig()
 	if err != nil {
-		return fmt.Errorf("ошибка получения конфига: %w", err)
+		return fmt.Errorf("fetching config error: %w", err)
 	}
 
 	s := grpc.NewServer()
@@ -39,14 +40,12 @@ func run() error {
 
 	l, err := net.Listen(cfg.GrpcNetwork, cfg.GrpcAddress)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("creating listener error: %w", err)
 	}
 
 	if err = s.Serve(l); err != nil {
-		return err
+		return fmt.Errorf("serve listener error: %w", err)
 	}
-
-	fmt.Printf("listening %s port %s", cfg.GrpcNetwork, cfg.GrpcAddress)
 
 	return nil
 }
