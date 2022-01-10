@@ -3,9 +3,10 @@ package cache
 import (
 	"context"
 	"encoding/json"
-	"github.com/go-redis/redis/v8"
-	"github.com/zhenianik/grpcApiTest/pkg/api"
 	"time"
+
+	"github.com/go-redis/redis/v8"
+	"github.com/zhenianik/grpcApiTest/internal/controller/api"
 )
 
 type RedisCache struct {
@@ -32,12 +33,12 @@ func NewRedisCache(host string, db int, exp time.Duration) *RedisCache {
 
 func (cache *RedisCache) Set(ctx context.Context, key string, user *api.UserList) error {
 
-	json, err := json.Marshal(user)
+	js, err := json.Marshal(user)
 	if err != nil {
 		return err
 	}
 
-	cache.client.Set(ctx, key, json, cache.expires*time.Second)
+	cache.client.Set(ctx, key, js, cache.expires*time.Second)
 
 	return nil
 }

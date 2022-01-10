@@ -3,12 +3,20 @@ package dbLogger
 import (
 	"context"
 	"encoding/json"
-	"github.com/segmentio/kafka-go"
 	"time"
+
+	"github.com/segmentio/kafka-go"
 )
+
+//go:generate mockgen -source=logger.go -destination=mocks/mock_dBlogger.go -package=dBlogger_mock
 
 type Logger struct {
 	kafka *kafka.Writer
+}
+
+// Interface -.
+type Interface interface {
+	LogRegistration(userID int64, name string, time time.Time) error
 }
 
 func New(address string) *Logger {

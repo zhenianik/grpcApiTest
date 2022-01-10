@@ -3,12 +3,13 @@ package config
 import (
 	"errors"
 	"fmt"
-	"github.com/spf13/viper"
 	"log"
 	"os"
 	"path/filepath"
 	"sync"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 var (

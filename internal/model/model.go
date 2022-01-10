@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/zhenianik/grpcApiTest/pkg/api"
+	"github.com/zhenianik/grpcApiTest/internal/controller/api"
 )
 
 type User struct {
