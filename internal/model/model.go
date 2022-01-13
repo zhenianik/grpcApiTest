@@ -1,11 +1,13 @@
 package model
 
 import (
-	"github.com/zhenianik/grpcApiTest/internal/controller/api"
+	"github.com/zhenianik/grpcApiTest/internal/controller/grpc/api"
 )
 
+type UserID int64
+
 type User struct {
-	Id    int64
+	Id    UserID
 	Name  string
 	Email string
 }
@@ -17,7 +19,7 @@ func (u *User) Decode(user *api.AddUserReq) {
 
 func (u *User) Encode() *api.User {
 	return &api.User{
-		Id:    u.Id,
+		Id:    int64(u.Id),
 		Name:  u.Name,
 		Email: u.Email,
 	}

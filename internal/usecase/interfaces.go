@@ -3,8 +3,9 @@ package usecase
 
 import (
 	"context"
+	"time"
 
-	"github.com/zhenianik/grpcApiTest/internal/controller/api"
+	"github.com/zhenianik/grpcApiTest/internal/controller/grpc/api"
 	"github.com/zhenianik/grpcApiTest/internal/model"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -20,12 +21,11 @@ type (
 
 	UserRepo interface {
 		GetUsers(ctx context.Context) (users []*model.User, err error)
-		AddUser(ctx context.Context, user *model.User) (id int64, err error)
-		RemoveUser(ctx context.Context, id int64) error
+		AddUser(ctx context.Context, user *model.User) (id model.UserID, err error)
+		RemoveUser(ctx context.Context, id model.UserID) error
 	}
 
-	Cache interface {
-		Set(ctx context.Context, key string, user *api.UserList) error
-		Get(ctx context.Context, key string) (*api.UserList, error)
+	EventSender interface {
+		Send(id model.UserID, name string, time time.Time) error
 	}
 )

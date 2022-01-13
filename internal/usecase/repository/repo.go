@@ -19,7 +19,6 @@ func New(db *pgxpool.Pool) *UserRepository {
 }
 
 func (db *UserRepository) GetUsers(ctx context.Context) (users []*model.User, err error) {
-
 	conn, err := db.pg.Acquire(ctx)
 	if err != nil {
 		return nil, err
@@ -35,7 +34,7 @@ func (db *UserRepository) GetUsers(ctx context.Context) (users []*model.User, er
 		err = rows.Scan(&user.Id, &user.Name, &user.Email)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error scaning row result: %w", err)
 		}
 
 		users = append(users, &user)
@@ -44,11 +43,10 @@ func (db *UserRepository) GetUsers(ctx context.Context) (users []*model.User, er
 	return users, nil
 }
 
-func (db *UserRepository) AddUser(ctx context.Context, user *model.User) (id int64, err error) {
-
+func (db *UserRepository) AddUser(ctx context.Context, user *model.User) (model.UserID, error) {
 	tx, err := db.pg.Begin(ctx)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("db communication error: %w", err)
 	}
 
 	defer tx.Rollback(ctx)
@@ -58,20 +56,20 @@ func (db *UserRepository) AddUser(ctx context.Context, user *model.User) (id int
 		return 0, fmt.Errorf("service with name %s allready exist", user.Name)
 	}
 
+	var id int64
 	err = tx.QueryRow(ctx, "INSERT INTO users (name, email) VALUES ($1, $2) RETURNING id", user.Name, user.Email).Scan(&id)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("db communication error: %w", err)
 	}
 
 	if err = tx.Commit(ctx); err != nil {
-		return 0, err
+		return 0, fmt.Errorf("db communication error: %w", err)
 	}
 
-	return id, nil
+	return model.UserID(id), nil
 }
 
-func (db *UserRepository) RemoveUser(ctx context.Context, id int64) error {
-
+func (db *UserRepository) RemoveUser(ctx context.Context, id model.UserID) error {
 	conn, err := db.pg.Acquire(ctx)
 	if err != nil {
 		return err
@@ -83,7 +81,7 @@ func (db *UserRepository) RemoveUser(ctx context.Context, id int64) error {
 
 	tx, err := db.pg.Begin(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("db communication error: %w", err)
 	}
 
 	defer tx.Rollback(ctx)
@@ -91,11 +89,12 @@ func (db *UserRepository) RemoveUser(ctx context.Context, id int64) error {
 	_, err = tx.Exec(ctx, "DELETE FROM users WHERE id = $1", id)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("db communication error: %w", err)
 	}
 
 	if err = tx.Commit(ctx); err != nil {
-		return err
+		return fmt.Errorf("db communication error: %w", err)
+
 	}
 
 	return nil

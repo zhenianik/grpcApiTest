@@ -1,18 +1,19 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
 
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/zhenianik/grpcApiTest/config"
-	"github.com/zhenianik/grpcApiTest/internal/controller/api"
+	"github.com/zhenianik/grpcApiTest/internal/controller/grpc/api"
 	"github.com/zhenianik/grpcApiTest/internal/usecase"
-	"github.com/zhenianik/grpcApiTest/internal/usecase/cache"
+	eventsender "github.com/zhenianik/grpcApiTest/internal/usecase/kafka"
 	"github.com/zhenianik/grpcApiTest/internal/usecase/repository"
-	"github.com/zhenianik/grpcApiTest/pkg/dbLogger"
-	"github.com/zhenianik/grpcApiTest/pkg/logger"
-	"github.com/zhenianik/grpcApiTest/pkg/postgres"
+	cache "github.com/zhenianik/grpcApiTest/pkg/cache/redis"
+	logger "github.com/zhenianik/grpcApiTest/pkg/logger/zap"
 	"google.golang.org/grpc"
 )
 
@@ -22,13 +23,24 @@ func main() {
 	}
 }
 
-func NewGRPCServer(cfg *config.Config) *usecase.GRPCServer {
-	logDB := dbLogger.New(cfg.KafkaAddress)
-	db := postgres.Connect(cfg.PostgresUrl)
+func NewGRPCServer(cfg *config.Config) *usecase.Service {
+	es := eventsender.New(cfg.KafkaAddress)
 	redisCache := cache.NewRedisCache(cfg.RedisHost, cfg.RedisDb, cfg.RedisExpires)
-	l := logger.New(cfg.LogLevel)
-	repo := repository.New(db)
-	return usecase.NewGRPCServer(repo, logDB, redisCache, l)
+
+	l, err := logger.New(cfg.LogLevel)
+	if err != nil {
+		log.Fatal("could not create logger: %w", err)
+		return nil
+	}
+
+	conn, err := pgxpool.Connect(context.Background(), cfg.PostgresUrl)
+	if err != nil {
+		l.Error("could not connect to postgres: %w", err)
+		return nil
+	}
+
+	repo := repository.New(conn)
+	return usecase.NewService(repo, es, redisCache, l)
 }
 
 func run() error {
