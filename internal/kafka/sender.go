@@ -3,23 +3,24 @@ package kafka
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/segmentio/kafka-go"
-	"github.com/zhenianik/grpcApiTest/internal/model"
+	"github.com/zhenianik/grpcApiTest/internal"
 )
 
-type es struct {
+type eventSender struct {
 	kafka *kafka.Writer
 }
 
-func New(address string) *es {
+func New(address string) *eventSender {
 	w := &kafka.Writer{
 		Addr:  kafka.TCP(address),
 		Async: true,
 	}
 
-	return &es{
+	return &eventSender{
 		kafka: w,
 	}
 }
@@ -30,14 +31,14 @@ type UserEvent struct {
 	Name string `json:"name"`
 }
 
-func (es *es) Send(userID model.UserID, name string, time time.Time) error {
+func (es *eventSender) Send(userID internal.UserID, name string, time time.Time) error {
 	dataJSON, err := json.Marshal(UserEvent{
 		ID:   int64(userID),
 		Time: time.Unix(),
 		Name: name,
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("marshal user event error: %w", err)
 	}
 
 	return es.kafka.WriteMessages(context.Background(), kafka.Message{

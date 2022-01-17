@@ -1,27 +1,27 @@
-package repository
+package postgres
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/zhenianik/grpcApiTest/internal/model"
+	"github.com/zhenianik/grpcApiTest/internal"
 )
 
-type UserRepository struct {
+type UserStorage struct {
 	pg *pgxpool.Pool
 }
 
-func New(db *pgxpool.Pool) *UserRepository {
-	return &UserRepository{
+func New(db *pgxpool.Pool) *UserStorage {
+	return &UserStorage{
 		pg: db,
 	}
 }
 
-func (db *UserRepository) GetUsers(ctx context.Context) (users []*model.User, err error) {
+func (db *UserStorage) GetUsers(ctx context.Context) (users []*internal.User, err error) {
 	conn, err := db.pg.Acquire(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error fetching db connect: %w", err)
 	}
 
 	rows, err := conn.Query(ctx, "SELECT id, name, email FROM users")
@@ -29,7 +29,7 @@ func (db *UserRepository) GetUsers(ctx context.Context) (users []*model.User, er
 		return nil, fmt.Errorf("select from db error")
 	}
 	for rows.Next() {
-		var user model.User
+		var user internal.User
 
 		err = rows.Scan(&user.Id, &user.Name, &user.Email)
 
@@ -43,7 +43,7 @@ func (db *UserRepository) GetUsers(ctx context.Context) (users []*model.User, er
 	return users, nil
 }
 
-func (db *UserRepository) AddUser(ctx context.Context, user *model.User) (model.UserID, error) {
+func (db *UserStorage) AddUser(ctx context.Context, user *internal.User) (internal.UserID, error) {
 	tx, err := db.pg.Begin(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("db communication error: %w", err)
@@ -53,7 +53,7 @@ func (db *UserRepository) AddUser(ctx context.Context, user *model.User) (model.
 
 	rows, _ := tx.Query(ctx, "SELECT id FROM users WHERE name = $1", user.Name)
 	if rows.Next() {
-		return 0, fmt.Errorf("service with name %s allready exist", user.Name)
+		return 0, fmt.Errorf("service with name %s already exists", user.Name)
 	}
 
 	var id int64
@@ -66,13 +66,13 @@ func (db *UserRepository) AddUser(ctx context.Context, user *model.User) (model.
 		return 0, fmt.Errorf("db communication error: %w", err)
 	}
 
-	return model.UserID(id), nil
+	return internal.UserID(id), nil
 }
 
-func (db *UserRepository) RemoveUser(ctx context.Context, id model.UserID) error {
+func (db *UserStorage) RemoveUser(ctx context.Context, id internal.UserID) error {
 	conn, err := db.pg.Acquire(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("error fetching db connect: %w", err)
 	}
 	rows, _ := conn.Query(ctx, "SELECT id FROM users WHERE id = $1", id)
 	if !rows.Next() {

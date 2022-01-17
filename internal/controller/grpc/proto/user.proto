@@ -4,45 +4,31 @@ package api;
 
 import "google/protobuf/empty.proto";
 
-service User {
+service Users {
   rpc Get(google.protobuf.Empty) returns (UserList){}
-  rpc Add(AddRequest) returns (Response){}
-  rpc Remove(RemoveRequest) returns (Response){}
+  rpc Add(AddRequest) returns (AddResponse){}
+  rpc Remove(RemoveRequest) returns (google.protobuf.Empty){}
 }
 
 message UserList {
-  repeated user users = 1;
+  repeated User users = 1;
 }
 
-message user {
+message User {
   int64 id = 1;
   string name = 2;
   string email = 3;
 }
 
 message AddRequest {
-  message Body {
-    addUserReq user = 1;
-  }
-  Body body = 1;
-}
-
-message RemoveRequest {
-  message Body {
-    removeUserReq user = 1;
-  }
-  Body body = 1;
-}
-
-message addUserReq {
   string name = 1;
   string email = 2;
 }
 
-message removeUserReq {
+message RemoveRequest {
   int64 id = 1;
 }
 
-message Response {
-  string message = 1;
+message AddResponse {
+  int64 id = 1;
 }

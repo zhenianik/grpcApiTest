@@ -34,6 +34,14 @@ func (c *RedisCache) Set(ctx context.Context, key string, user []byte) error {
 	return nil
 }
 
+func (c *RedisCache) Delete(ctx context.Context, key string) error {
+	err := c.client.Del(ctx, key).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (c *RedisCache) Get(ctx context.Context, key string) ([]byte, error) {
 	val, err := c.client.Get(ctx, key).Result()
 	if err != nil {

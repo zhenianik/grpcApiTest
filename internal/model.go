@@ -1,4 +1,4 @@
-package model
+package internal
 
 import (
 	"github.com/zhenianik/grpcApiTest/internal/controller/grpc/api"
@@ -12,7 +12,7 @@ type User struct {
 	Email string
 }
 
-func (u *User) Decode(user *api.AddUserReq) {
+func (u *User) Decode(user *api.AddRequest) {
 	u.Name = user.Name
 	u.Email = user.Email
 }
