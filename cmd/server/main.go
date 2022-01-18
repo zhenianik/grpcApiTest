@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/zhenianik/grpcApiTest/config"
@@ -66,6 +69,12 @@ func run() error {
 	if err = s.Serve(l); err != nil {
 		return fmt.Errorf("serve listener error: %w", err)
 	}
+
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	<-sig
+
+	fmt.Println("closing")
 
 	return nil
 }
